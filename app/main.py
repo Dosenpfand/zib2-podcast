@@ -121,18 +121,16 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/", response_class=XmlResponse)
 async def podcast(request: Request):
-    print(request.url.components)
-
     filenames = os.listdir("app/static/")
     items = []
     for filename in filenames:
-        if len(filename.split("-")) != 2:
+        if not filename.endswith(".m4a"):
             continue
-        (_, date_enc) = filename.split("-")
-        date = date_enc.replace("_", " ")
+        (_, date_enc) = filename[:-4].split("-")
+        title = f"ZIB 2 - {date_enc.replace('_', ' ')}"
         size = os.path.getsize(f"app/static/{filename}")
         item = Item(
-            title=date,
+            title=title,
             enclosure=Enclosure(
                 url=f"{request.url.components.scheme}://{request.url.components.netloc}/static/{filename}",
                 length=size,
