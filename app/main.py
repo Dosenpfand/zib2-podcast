@@ -1,9 +1,10 @@
 import os
 import re
 from typing import List, Literal, Optional
-from fastapi.staticfiles import StaticFiles
 from pydantic import HttpUrl
 from pydantic_xml import BaseXmlModel, attr, element
+from fastapi.staticfiles import StaticFiles
+from fastapi_restful.tasks import repeat_every
 from yt_dlp import YoutubeDL
 import requests
 from fastapi import FastAPI, Request, Response
@@ -137,6 +138,12 @@ async def podcast(request: Request):
     rss.channel.items = items
 
     return XmlResponse(rss)
+
+
+@app.on_event("startup")
+@repeat_every(seconds=5 * 60)
+def download_all_task() -> None:
+    download_all()
 
 
 if __name__ == "__main__":
