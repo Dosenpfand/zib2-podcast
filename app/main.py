@@ -124,7 +124,7 @@ async def podcast(request: Request):
     filenames = os.listdir("app/static/")
     items = []
     if filenames:
-        for filename in filenames.reverse():
+        for filename in reversed(filenames):
             if not filename.endswith(".m4a"):
                 continue
             (_, date_enc) = filename[:-4].split("-")
