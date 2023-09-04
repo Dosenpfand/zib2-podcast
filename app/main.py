@@ -57,7 +57,7 @@ ZIB2_FEED = Rss(
 
 YTDL_OPTS = {
     "outtmpl": "%(id)s.%(ext)s",
-    "paths": {"home": "./static", "temp": "/tmp"},
+    "paths": {"home": "./app/static", "temp": "/tmp"},
     "overwrites": False,
     "postprocessors": [
         {
