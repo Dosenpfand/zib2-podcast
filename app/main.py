@@ -123,20 +123,21 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 async def podcast(request: Request):
     filenames = os.listdir("app/static/")
     items = []
-    for filename in filenames.reverse():
-        if not filename.endswith(".m4a"):
-            continue
-        (_, date_enc) = filename[:-4].split("-")
-        title = f"ZIB 2 - {date_enc.replace('_', ' ')}"
-        size = os.path.getsize(f"app/static/{filename}")
-        item = Item(
-            title=title,
-            enclosure=Enclosure(
-                url=f"{request.url.components.scheme}://{request.url.components.netloc}/static/{filename}",
-                length=size,
-            ),
-        )
-        items.append(item)
+    if filenames:
+        for filename in filenames.reverse():
+            if not filename.endswith(".m4a"):
+                continue
+            (_, date_enc) = filename[:-4].split("-")
+            title = f"ZIB 2 - {date_enc.replace('_', ' ')}"
+            size = os.path.getsize(f"app/static/{filename}")
+            item = Item(
+                title=title,
+                enclosure=Enclosure(
+                    url=f"{request.url.components.scheme}://{request.url.components.netloc}/static/{filename}",
+                    length=size,
+                ),
+            )
+            items.append(item)
     rss = ZIB2_FEED
     rss.channel.items = items
 
