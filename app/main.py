@@ -1,14 +1,12 @@
-from dataclasses import field
 import os
 import re
 from typing import List, Literal, Optional
-import typing
 from fastapi.staticfiles import StaticFiles
 from pydantic import HttpUrl
 from pydantic_xml import BaseXmlModel, attr, element
 from yt_dlp import YoutubeDL
 import requests
-from fastapi import BackgroundTasks, FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response
 
 
 class Enclosure(BaseXmlModel):
@@ -40,7 +38,7 @@ class Channel(BaseXmlModel, nsmap=ns_map):
 
 
 class Rss(BaseXmlModel, tag="rss", nsmap=ns_map):
-    channel: Optional[Channel] = field()
+    channel: Optional[Channel] = element()
     version: float = attr(default=2.0)
 
 
@@ -57,7 +55,7 @@ ZIB2_FEED = Rss(
 
 YTDL_OPTS = {
     "outtmpl": "%(id)s.%(ext)s",
-    "paths": {"home": "./app/static", "temp": "/tmp"},
+    "paths": {"home": "app/static", "temp": "/tmp"},
     "overwrites": False,
     "postprocessors": [
         {
@@ -78,15 +76,21 @@ YTDL_OPTS = {
 def download_all():
     urls = get_episode_urls()
 
-    for _, url in urls.items():
+    for id, url in urls.items():
         regex = r'<span class="date">(?P<date>.+)</span>'
         request = requests.get(url)
         match = re.search(regex, request.text)
+        date_encoded = match.group("date").replace(" ", "_")
 
-        ytdl_opts = YTDL_OPTS.copy()
-        ytdl_opts["outtmpl"] = f"%(id)s-{match.group('date').replace(' ', '_')}.%(ext)s"
-        with YoutubeDL(ytdl_opts) as ydl:
-            ydl.download([url])
+        filename_template = f"%(id)s-{date_encoded}.%(ext)s"
+
+        if not os.path.exists(
+            os.path.join("app", "static", filename_template % {"id": id, "ext": "m4a"})
+        ):
+            ytdl_opts = YTDL_OPTS.copy()
+            ytdl_opts["outtmpl"] = filename_template
+            with YoutubeDL(ytdl_opts) as ydl:
+                ydl.download([url])
 
 
 def get_episode_urls():
@@ -101,16 +105,6 @@ def get_episode_urls():
 class XmlResponse(Response):
     media_type = "application/xml"
 
-    def __init__(
-        self,
-        content: typing.Any = None,
-        status_code: int = 200,
-        headers: typing.Optional[typing.Dict[str, str]] = None,
-        media_type: typing.Optional[str] = None,
-        background: typing.Optional[BackgroundTasks] = None,
-    ) -> None:
-        super().__init__(content, status_code, headers, media_type, background)
-
     def render(self, content: type[BaseXmlModel]) -> bytes:
         return content.to_xml(encoding="utf-8", xml_declaration=True)
 
@@ -121,20 +115,21 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/", response_class=XmlResponse)
 async def podcast(request: Request):
-    filenames = os.listdir("app/static/")
+    dirlist = list(os.scandir("app/static/"))
+    dirlist.sort(reverse=True, key=lambda x: x.name)
     items = []
-    if filenames:
-        for filename in reversed(filenames):
-            if not filename.endswith(".m4a"):
+
+    if dirlist:
+        for entry in dirlist:
+            if not entry.name.endswith(".m4a"):
                 continue
-            (_, date_enc) = filename[:-4].split("-")
+            (_, date_enc) = entry.name[:-4].split("-")
             title = f"ZIB 2 - {date_enc.replace('_', ' ')}"
-            size = os.path.getsize(f"app/static/{filename}")
             item = Item(
                 title=title,
                 enclosure=Enclosure(
-                    url=f"{request.url.components.scheme}://{request.url.components.netloc}/static/{filename}",
-                    length=size,
+                    url=f"{request.url.components.scheme}://{request.url.components.netloc}/static/{entry.name}",
+                    length=entry.stat().st_size,
                 ),
             )
             items.append(item)
