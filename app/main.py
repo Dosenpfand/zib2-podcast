@@ -80,12 +80,20 @@ def download_all():
     for id, url in urls.items():
         regex = r'<span class="date">(?P<date>.+)</span>'
         request = requests.get(url)
+
+        if any(
+            uncomplete_string in request.text
+            for uncomplete_string in [
+                "to-livestream",
+                "Die Videos werden laufend ergänzt.",
+            ]
+        ):
+            continue
+
         match = re.search(regex, request.text)
         date_encoded = match.group("date").replace(" ", "_")
 
         filename_template = f"%(id)s-{date_encoded}.%(ext)s"
-
-        # TODO: check for "... laufend ergänzt ..." -> Skip
 
         if not os.path.exists(
             os.path.join("app", "static", filename_template % {"id": id, "ext": "m4a"})
