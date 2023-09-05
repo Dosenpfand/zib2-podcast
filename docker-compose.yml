@@ -4,20 +4,10 @@ services:
   app:
     build: ./
     restart: unless-stopped
+    volumes:
+      - static:/code/app/static
     ports:
       - 5000:80
 
-  # TODO
-  # cron:
-  #   build: ./
-  #   restart: unless-stopped
-  #   environment:
-  #     - FLASK_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://zug:zug@postgres:5432/zug
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   command: sh -c "/root/create_env.sh; cron -f & touch /var/log/cron.log && tail -f /var/log/cron.log"
-
-# TODO
-# volumes:
-#   database:
+volumes:
+  static:

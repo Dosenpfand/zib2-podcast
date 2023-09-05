@@ -85,6 +85,8 @@ def download_all():
 
         filename_template = f"%(id)s-{date_encoded}.%(ext)s"
 
+        # TODO: check for "... laufend ergänzt ..." -> Skip
+
         if not os.path.exists(
             os.path.join("app", "static", filename_template % {"id": id, "ext": "m4a"})
         ):
