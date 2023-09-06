@@ -8,6 +8,10 @@ from fastapi_restful.tasks import repeat_every
 from yt_dlp import YoutubeDL
 import requests
 from fastapi import FastAPI, Request, Response
+import logging
+
+LOGLEVEL = os.environ.get("LOGLEVEL", "WARNING").upper()
+logging.basicConfig(level=LOGLEVEL)
 
 
 class Enclosure(BaseXmlModel):
@@ -78,30 +82,35 @@ def download_all():
     urls = get_episode_urls()
 
     for id, url in urls.items():
-        regex = r'<span class="date">(?P<date>.+)</span>'
+        logging.info(f"Processing: {url}")
+
         request = requests.get(url)
 
-        if any(
-            uncomplete_string in request.text
-            for uncomplete_string in [
-                "to-livestream",
-                "Die Videos werden laufend ergänzt.",
-            ]
-        ):
+        uncomplete_regex = r"segments_complete(&quot;)?\s*:\s*false"
+        if re.search(uncomplete_regex, request.text):
+            logging.info(f"Skipping uncomplete: {url}")
             continue
 
-        match = re.search(regex, request.text)
-        date_encoded = match.group("date").replace(" ", "_")
+        date_regex = r'<span class="date">(?P<date>.+)</span>'
+        date_match = re.search(date_regex, request.text)
+        if not date_match:
+            logging.warning(f"Skipping without a date: {url}")
+            continue
 
+        date_encoded = date_match.group("date").replace(" ", "_")
         filename_template = f"%(id)s-{date_encoded}.%(ext)s"
 
-        if not os.path.exists(
+        if os.path.exists(
             os.path.join("app", "static", filename_template % {"id": id, "ext": "m4a"})
         ):
-            ytdl_opts = YTDL_OPTS.copy()
-            ytdl_opts["outtmpl"] = filename_template
-            with YoutubeDL(ytdl_opts) as ydl:
-                ydl.download([url])
+            logging.info(f"Skipping existing: {url}")
+            continue
+
+        logging.info(f"Downloading: {url}")
+        ytdl_opts = YTDL_OPTS.copy()
+        ytdl_opts["outtmpl"] = filename_template
+        with YoutubeDL(ytdl_opts) as ydl:
+            ydl.download([url])
 
 
 def get_episode_urls():
@@ -110,6 +119,7 @@ def get_episode_urls():
     request = requests.get(program_url)
     matches = re.finditer(regex, request.text)
     urls = {match.group("id"): match.group() for match in matches}
+    logging.info(f"Got episode urls: {urls}")
     return urls
 
 
