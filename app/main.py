@@ -13,6 +13,11 @@ import logging
 LOGLEVEL = os.environ.get("LOGLEVEL", "WARNING").upper()
 logging.basicConfig(level=LOGLEVEL)
 
+ns_map = dict(
+    itunes="http://www.itunes.com/dtds/podcast-1.0.dtd",
+    content="http://purl.org/rss/1.0/modules/content/",
+)
+
 
 class Enclosure(BaseXmlModel):
     url: HttpUrl = attr()
@@ -25,18 +30,20 @@ class Item(BaseXmlModel):
     enclosure: Enclosure = element()
 
 
-ns_map = dict(
-    itunes="http://www.itunes.com/dtds/podcast-1.0.dtd",
-    content="http://purl.org/rss/1.0/modules/content/",
-)
+class Image(BaseXmlModel):
+    href: HttpUrl = attr(ns="itunes")
+
+
+class Category(BaseXmlModel):
+    text: str = attr(ns="itunes")
 
 
 class Channel(BaseXmlModel, nsmap=ns_map):
     title: str = element()
     description: str = element()
-    image: HttpUrl = element(ns="itunes")
+    image: Image = element(ns="itunes")
     language: str = element()
-    category: str = element(ns="itunes")
+    category: Category = element(ns="itunes")
     explicit: bool = element(ns="itunes", default=False)
     link: HttpUrl = element()
     items: Optional[List[Item]] = element(tag="item", default=None)
@@ -51,9 +58,11 @@ ZIB2_FEED = Rss(
     channel=Channel(
         title="ZIB 2 Podcast",
         description="ORF ZIB 2 Podcast",
-        image="https://tv.orf.at/zib2/zib2-neu100~_v-epg__large__16__9_-5412e775eb65789c908def5fa9fdf24a7b895a8f.jpg",
+        image=Image(
+            href="https://tv.orf.at/zib2/zib2-neu100~_v-epg__large__16__9_-5412e775eb65789c908def5fa9fdf24a7b895a8f.jpg"
+        ),
         language="de-at",
-        category="Daily News",
+        category=Category(text="Daily News"),
         link="https://tvthek.orf.at/profile/ZIB-2/1211/episodes",
     )
 )
