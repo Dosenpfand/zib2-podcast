@@ -134,6 +134,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
+@app.head("/", response_class=XmlResponse)
 @app.get("/", response_class=XmlResponse)
 async def podcast(request: Request):
     dirlist = list(os.scandir("app/static/"))
