@@ -72,6 +72,7 @@ YTDL_OPTS = {
     "outtmpl": "%(id)s.%(ext)s",
     "paths": {"home": "app/static", "temp": "/tmp"},
     "overwrites": False,
+    "concurrent_fragment_downloads": 5,
     "postprocessors": [
         {
             "key": "FFmpegConcat",
