@@ -60,7 +60,7 @@ ZIB2_FEED = Rss(
         title="ZIB 2 - Ganze Sendung",
         description="Gesamtausgaben der ORF ZIB 2",
         image=Image(
-            href="https://podcast.orf.at/podcast/tv/tv_zib2/tv_zib2_premium.png"
+            href="https://podcast.orf.at/podcast/tv/tv_zib2/tv_zib2.png"
         ),
         language="de-at",
         category=Category(text="News", category=Category(text="Daily News")),
