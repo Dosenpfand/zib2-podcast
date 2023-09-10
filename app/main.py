@@ -36,6 +36,7 @@ class Image(BaseXmlModel):
 
 class Category(BaseXmlModel):
     text: str = attr(ns="itunes")
+    category: Optional["Category"] = element(default=None)
 
 
 class Channel(BaseXmlModel, nsmap=ns_map):
@@ -56,13 +57,13 @@ class Rss(BaseXmlModel, tag="rss", nsmap=ns_map):
 
 ZIB2_FEED = Rss(
     channel=Channel(
-        title="ZIB 2 Podcast",
-        description="ORF ZIB 2 Podcast",
+        title="ZIB 2 - Ganze Sendung",
+        description="Gesamtausgaben der ORF ZIB 2",
         image=Image(
-            href="https://tv.orf.at/zib2/zib2-neu100~_v-epg__large__16__9_-5412e775eb65789c908def5fa9fdf24a7b895a8f.jpg"
+            href="https://podcast.orf.at/podcast/tv/tv_zib2/tv_zib2_premium.png"
         ),
         language="de-at",
-        category=Category(text="Daily News"),
+        category=Category(text="News", category=Category(text="Daily News")),
         link="https://tvthek.orf.at/profile/ZIB-2/1211/episodes",
     )
 )
