@@ -8,6 +8,8 @@ services:
       - static:/code/app/static
     ports:
       - 5000:80
+    environment:
+      - LOGLEVEL=debug
 
 volumes:
   static:

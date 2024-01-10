@@ -126,7 +126,7 @@ def download_all():
 
 def get_episode_urls():
     program_url = "https://tvthek.orf.at/profile/ZIB-2/1211/episodes"
-    regex = r"https://tvthek\.orf\.at/profile/ZIB-2/1211/ZIB-2/(?P<id>\d+)"
+    regex = r"https://tvthek\.orf\.at/profile/ZIB-2/1211/ZIB-2[^/]*?/(?P<id>\d+)"
     request = requests.get(program_url)
     matches = re.finditer(regex, request.text)
     urls = {match.group("id"): match.group() for match in matches}
