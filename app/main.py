@@ -5,13 +5,16 @@ from pydantic import HttpUrl
 from pydantic_xml import BaseXmlModel, attr, element
 from fastapi.staticfiles import StaticFiles
 from fastapi_restful.tasks import repeat_every
+import sentry_sdk
 from yt_dlp import YoutubeDL
 import requests
 from fastapi import FastAPI, Request, Response
 import logging
+import datetime
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "WARNING").upper()
 logging.basicConfig(level=LOGLEVEL)
+NEWEST_EPISODE_MAX_AGE = 3
 
 ns_map = dict(
     itunes="http://www.itunes.com/dtds/podcast-1.0.dtd",
@@ -59,9 +62,7 @@ ZIB2_FEED = Rss(
     channel=Channel(
         title="ZIB 2 - Ganze Sendung",
         description="Gesamtausgaben der ORF ZIB 2",
-        image=Image(
-            href="https://podcast.orf.at/podcast/tv/tv_zib2/tv_zib2.png"
-        ),
+        image=Image(href="https://podcast.orf.at/podcast/tv/tv_zib2/tv_zib2.png"),
         language="de-at",
         category=Category(text="News", category=Category(text="Daily News")),
         link="https://tvthek.orf.at/profile/ZIB-2/1211/episodes",
@@ -141,6 +142,7 @@ class XmlResponse(Response):
         return content.to_xml(encoding="utf-8", xml_declaration=True)
 
 
+sentry_sdk.init(enable_tracing=True)
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
@@ -148,7 +150,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.head("/", response_class=XmlResponse)
 @app.get("/", response_class=XmlResponse)
 async def podcast(request: Request):
-    dirlist = list(os.scandir("app/static/"))
+    dirlist = sorted([x for x in os.scandir("app/static/") if x.name.endswith(".m4a")], key=lambda x: x.name)
     dirlist.sort(reverse=True, key=lambda x: x.name)
     items = []
 
@@ -168,6 +170,18 @@ async def podcast(request: Request):
             items.append(item)
     rss = ZIB2_FEED
     rss.channel.items = items
+
+    # Check if we still get updates
+    try:
+        date_newest = datetime.datetime.strptime(
+            dirlist[-1].name.replace(".m4a", "").split("_")[1], "%d.%m.%Y"
+        ).date()
+        date_today = datetime.date.today()
+        day_diff = date_today - date_newest
+        if day_diff.days > NEWEST_EPISODE_MAX_AGE:
+            logging.exception(f"Newest episode older than {NEWEST_EPISODE_MAX_AGE} days!")
+    except Exception:
+        logging.exception("Exception while last episode range checking")
 
     return XmlResponse(rss)
 
