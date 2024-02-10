@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  app:
+  app: &app-template
     build: ./
     restart: unless-stopped
     volumes:
@@ -10,6 +10,12 @@ services:
       - 5000:80
     environment:
       - LOGLEVEL=debug
+      # - SENTRY_DSN=SET_THIS_IF_YOU_WANT_SENTRY
+
+  cron:
+    <<: *app-template
+    command: bash -c "/code/create_env.sh; exec cron -f"
+    init: true
 
 volumes:
   static:

@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+BASH_ENV=/container.env
+
+*/5 * * * * root bash /code/cron.sh > /proc/1/fd/1 2>&1

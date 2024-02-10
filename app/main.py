@@ -4,7 +4,6 @@ from typing import List, Literal, Optional
 from pydantic import HttpUrl
 from pydantic_xml import BaseXmlModel, attr, element
 from fastapi.staticfiles import StaticFiles
-from fastapi_restful.tasks import repeat_every
 import sentry_sdk
 from yt_dlp import YoutubeDL
 import requests
@@ -150,7 +149,10 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.head("/", response_class=XmlResponse)
 @app.get("/", response_class=XmlResponse)
 async def podcast(request: Request):
-    dirlist = sorted([x for x in os.scandir("app/static/") if x.name.endswith(".m4a")], key=lambda x: x.name)
+    dirlist = sorted(
+        [x for x in os.scandir("app/static/") if x.name.endswith(".m4a")],
+        key=lambda x: x.name,
+    )
     dirlist.sort(reverse=True, key=lambda x: x.name)
     items = []
 
@@ -179,17 +181,13 @@ async def podcast(request: Request):
         date_today = datetime.date.today()
         day_diff = date_today - date_newest
         if day_diff.days > NEWEST_EPISODE_MAX_AGE:
-            logging.exception(f"Newest episode older than {NEWEST_EPISODE_MAX_AGE} days!")
+            logging.exception(
+                f"Newest episode older than {NEWEST_EPISODE_MAX_AGE} days!"
+            )
     except Exception:
         logging.exception("Exception while last episode range checking")
 
     return XmlResponse(rss)
-
-
-@app.on_event("startup")
-@repeat_every(seconds=5 * 60)
-def download_all_task() -> None:
-    download_all()
 
 
 if __name__ == "__main__":
