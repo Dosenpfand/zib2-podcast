@@ -1,7 +1,7 @@
 #!/bin/bash
 
-(
-    flock -w 1 200 || exit 1
-    cd /code
-    python app/main.py
-) 200>/var/lock/.cron.sh
+exec {lock_fd}>/var/lock/cron.sh || exit 1
+flock -n "$lock_fd" || { echo "ERROR: flock() failed." >&2; exit 1; }
+cd /code
+python app/main.py
+flock -u "$lock_fd"
