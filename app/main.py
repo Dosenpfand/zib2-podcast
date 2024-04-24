@@ -10,6 +10,8 @@ import requests
 from fastapi import FastAPI, Request, Response
 import logging
 import datetime
+from urllib3.connection import HTTPConnection
+import socket
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "WARNING").upper()
 logging.basicConfig(level=LOGLEVEL)
@@ -141,7 +143,17 @@ class XmlResponse(Response):
         return content.to_xml(encoding="utf-8", xml_declaration=True)
 
 
-sentry_sdk.init(enable_tracing=True)
+sentry_sdk.init(
+    enable_tracing=True,
+    debug=True,
+    socket_options=HTTPConnection.default_socket_options
+    + [
+        (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+        (socket.SOL_TCP, socket.TCP_KEEPIDLE, 45),
+        (socket.SOL_TCP, socket.TCP_KEEPINTVL, 10),
+        (socket.SOL_TCP, socket.TCP_KEEPCNT, 6),
+    ],
+)
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
