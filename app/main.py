@@ -188,7 +188,7 @@ async def podcast(request: Request):
     # Check if we still get updates
     try:
         date_newest = datetime.datetime.strptime(
-            dirlist[0].name.replace(".m4a", "").split("_")[1], "%d.%m.%Y"
+            dirlist[0].name.replace(".m4a", "").split("-")[1], "%d.%m.%Y"
         ).date()
         date_today = datetime.date.today()
         day_diff = date_today - date_newest
