@@ -1,8 +1,8 @@
-yt-dlp~=2023.7.6
-requests~=2.31.0
-fastapi[all]~=0.103.1
+yt-dlp~=2024.4
+requests~=2.31
+fastapi[all]~=0.103
 pydantic~=2.3
 lxml~=4.9
 pydantic-xml~=2.1
-typing-inspect~=0.9.0
+typing-inspect~=0.9
 sentry-sdk[fastapi]~=1.39

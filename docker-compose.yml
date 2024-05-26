@@ -16,6 +16,7 @@ services:
     <<: *app-template
     command: bash -c "/code/create_env.sh; exec cron -f"
     init: true
+    ports: []
 
 volumes:
   static:
