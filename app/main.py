@@ -145,7 +145,7 @@ class XmlResponse(Response):
 
 sentry_sdk.init(
     enable_tracing=True,
-    debug=True,
+    debug=False,
     socket_options=HTTPConnection.default_socket_options
     + [
         (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
