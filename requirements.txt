@@ -1,4 +1,7 @@
-yt-dlp~=2024.5
+# yt-dlp~=2024.5
+# TODO: Temporarily use master until the video extractor fix is released, see
+# https://github.com/yt-dlp/yt-dlp/pull/10053
+git+https://github.com/yt-dlp/yt-dlp.git@master#egg=yt-dlp
 requests~=2.31
 fastapi[all]~=0.103
 pydantic~=2.3

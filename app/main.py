@@ -114,10 +114,11 @@ def download_all():
         date_encoded = date_match.group("date").replace(" ", "_")
         filename_template = f"%(id)s-{date_encoded}.%(ext)s"
 
-        if os.path.exists(
-            os.path.join("app", "static", filename_template % {"id": id, "ext": "m4a"})
-        ):
-            logging.info(f"Skipping existing: {url}")
+        logging.debug(f"Checking '{url}', if '{date_encoded}' exists.")
+        existing_episodes = os.listdir(os.path.join("app", "static"))
+        already_exists = any(date_encoded in episode for episode in existing_episodes)
+        if already_exists:
+            logging.info(f"Skipping '{url}', '{date_encoded}' exists.")
             continue
 
         logging.info(f"Downloading: {url}")
