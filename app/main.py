@@ -6,6 +6,7 @@ from pydantic_xml import BaseXmlModel, attr, element
 from fastapi.staticfiles import StaticFiles
 import sentry_sdk
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 import requests
 from fastapi import FastAPI, Request, Response
 import logging
@@ -123,7 +124,11 @@ def download_all():
         ytdl_opts = YTDL_OPTS.copy()
         ytdl_opts["outtmpl"] = filename_template
         with YoutubeDL(ytdl_opts) as ydl:
-            ydl.download([url])
+            try:
+                ydl.download([url])
+            except DownloadError as e:
+                logging.exception("Failed to download episode.")
+
 
 
 def get_episode_urls():
