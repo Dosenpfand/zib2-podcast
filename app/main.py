@@ -100,8 +100,8 @@ def download_all():
 
         request = requests.get(url)
 
-        uncomplete_regex = r"segments_complete(&quot;)?\s*:\s*false"
-        if re.search(uncomplete_regex, request.text):
+        uncomplete_indicator = '"description":"Entdecken Sie Filme, Serien, Dokus, Sport und Nachrichten und viele weitere Videos aus dem ORF-Fernsehen."'
+        if uncomplete_indicator in request.text:
             logging.info(f"Skipping uncomplete: {url}")
             continue
 
@@ -129,7 +129,6 @@ def download_all():
                 ydl.download([url])
             except DownloadError as e:
                 logging.exception("Failed to download episode.")
-
 
 
 def get_episode_urls():
