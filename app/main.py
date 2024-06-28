@@ -100,8 +100,8 @@ def download_all():
 
         request = requests.get(url)
 
-        uncomplete_indicator = '"description":"Entdecken Sie Filme, Serien, Dokus, Sport und Nachrichten und viele weitere Videos aus dem ORF-Fernsehen."'
-        if uncomplete_indicator in request.text:
+        incomplete_indicator = '"description":"Entdecken Sie Filme, Serien, Dokus, Sport und Nachrichten und viele weitere Videos aus dem ORF-Fernsehen."'
+        if incomplete_indicator in request.text:
             logging.info(f"Skipping uncomplete: {url}")
             continue
 

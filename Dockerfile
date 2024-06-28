@@ -2,6 +2,8 @@ FROM python:3.11
 
 WORKDIR /code
 
+ENV TZ="Europe/Vienna"
+
 RUN set -eux; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends cron ffmpeg; \
